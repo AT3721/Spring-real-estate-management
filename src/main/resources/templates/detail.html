@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi" layout:decorate="~{layout}" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <title>Chi Tiết Giao Dịch</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">Chi Tiết Giao Dịch</h4>
+        </div>
+        <div class="card-body">
+            <!-- Thông tin giao dịch -->
+            <div class="row mb-2">
+                <div class="col-sm-4 fw-bold">Mã giao dịch</div>
+                <div class="col-sm-8" th:text="${transaction.id}"></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-4 fw-bold">Loại bất động sản</div>
+                <div class="col-sm-8" th:text="${transaction.serviceType}"></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-4 fw-bold">Ngày giao dịch</div>
+                <!-- Định dạng ngày tháng năm -->
+                <div class="col-sm-8" th:text="${#temporals.format(transaction.transactionDate, 'dd/MM/yyyy')}"></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-4 fw-bold">Đơn giá</div>
+                <!-- Định dạng số tiền có dấu phẩy ngăn cách -->
+                <div class="col-sm-8" th:text="${#numbers.formatDecimal(transaction.price, 0, 'COMMA', 0, 'POINT')} + ' VND/m2'"></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-4 fw-bold">Diện tích</div>
+                <div class="col-sm-8" th:text="${transaction.area} + ' m2'"></div>
+            </div>
+
+            <hr class="border-secondary border-2 opacity-50">
+
+            <!-- Thông tin khách hàng -->
+            <div class="row mb-2">
+                <div class="col-sm-4 fw-bold">Tên khách hàng</div>
+                <div class="col-sm-8" th:text="${transaction.customer.name}"></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-4 fw-bold">Số điện thoại</div>
+                <div class="col-sm-8" th:text="${transaction.customer.phone}"></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-4 fw-bold">Email</div>
+                <div class="col-sm-8" th:text="${transaction.customer.email}"></div>
+            </div>
+        </div>
+
+        <!-- Các nút thao tác -->
+        <div class="card-footer bg-transparent d-flex gap-2">
+            <a th:href="@{/transactions}" class="btn btn-secondary">Quay lại</a>
+
+            <a th:href="@{/transactions/{id}/edit(id=${transaction.id})}" class="btn btn-warning">Chỉnh sửa</a>
+
+            <!-- Nút kích hoạt Modal Xóa -->
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">Xóa</button>
+        </div>
+    </div>
+
+    <!-- Modal Xác nhận Xóa -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa giao dịch</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn xóa giao dịch mã <strong class="text-warning" th:text="${transaction.id}"></strong> không? Hành động này không thể hoàn tác.
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <!-- Form xóa thực sự -->
+                    <form th:action="@{/transactions/{id}/delete(id=${transaction.id})}" method="post">
+                        <button type="submit" class="btn btn-danger">Đồng ý xóa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi" layout:decorate="~{layout}" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head><title>Thêm mới giao dịch</title></head>
+<body>
+<div layout:fragment="content">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-header bg-dark text-white"><h4 class="mb-0">Thêm mới giao dịch</h4></div>
+        <div class="card-body">
+            <form th:action="@{/transactions/create}" th:object="${transactionDto}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Mã giao dịch</label>
+                    <input type="text" th:field="*{id}" class="form-control"
+                           th:classappend="${#fields.hasErrors('id')} ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('id')}" th:errors="*{id}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Khách hàng</label>
+                    <select id="customerSelect" th:field="*{customerId}" class="form-select"
+                            th:classappend="${#fields.hasErrors('customerId')} ? 'is-invalid' : ''"
+                            onchange="autoFillEmail(this)">
+                        <option value="">-- Chọn khách hàng --</option>
+                        <option th:each="c : ${customers}"
+                                th:value="${c.id}"
+                                th:text="${c.name}"
+                                th:attr="data-email=${c.email}"></option>
+                    </select>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('customerId')}" th:errors="*{customerId}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email liên hệ</label>
+                    <input type="email" id="emailDisplay" th:field="*{email}" class="form-control bg-light"
+                           readonly placeholder="Email tự động điền khi chọn khách hàng">
+                    <small class="text-muted">Email được lấy từ thông tin khách hàng, chỉ để tham khảo.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Loại dịch vụ</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{serviceType}" value="Đất">
+                            <label class="form-check-label">Đất</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{serviceType}" value="Nhà và đất">
+                            <label class="form-check-label">Nhà và đất</label>
+                        </div>
+                    </div>
+                    <div class="text-danger small mt-1" th:if="${#fields.hasErrors('serviceType')}" th:errors="*{serviceType}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Ngày giao dịch</label>
+                    <input type="date" th:field="*{transactionDate}" class="form-control"
+                           th:classappend="${#fields.hasErrors('transactionDate')} ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('transactionDate')}" th:errors="*{transactionDate}"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Đơn giá (VND/m2)</label>
+                        <input type="text" th:field="*{price}" class="form-control"
+                               th:classappend="${#fields.hasErrors('price')} ? 'is-invalid' : ''"
+                               onkeyup="formatNumber(this)">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Diện tích (m2)</label>
+                        <input type="text" th:field="*{area}" class="form-control"
+                               th:classappend="${#fields.hasErrors('area')} ? 'is-invalid' : ''"
+                               onkeyup="formatNumber(this)">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('area')}" th:errors="*{area}"></div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Thêm mới</button>
+                    <a th:href="@{/transactions}" class="btn btn-secondary">Quay lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script th:src="@{/js/format.js}"></script>
+    <script>
+        function autoFillEmail(selectEl) {
+            var selected = selectEl.options[selectEl.selectedIndex];
+            var email = selected ? (selected.getAttribute('data-email') || '') : '';
+            document.getElementById('emailDisplay').value = email;
+        }
+    </script>
+</div>
+</body>
+</html>

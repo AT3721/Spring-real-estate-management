@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi" layout:decorate="~{layout}" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head><title>Danh sách giao dịch</title></head>
+<body>
+<div layout:fragment="content">
+    <h2 class="mb-4">Danh Sách Giao Dịch</h2>
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" th:text="${success}">
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <form th:action="@{/transactions}" method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="customerName" class="form-control" placeholder="Tên khách hàng..."
+                   th:value="${customerName}">
+        </div>
+        <div class="col-md-4">
+            <select name="serviceType" class="form-select">
+                <option value="">-- Tất cả loại dịch vụ --</option>
+                <option value="Đất" th:selected="${serviceType == 'Đất'}">Đất</option>
+                <option value="Nhà và đất" th:selected="${serviceType == 'Nhà và đất'}">Nhà và đất</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary me-2">Tìm kiếm</button>
+            <a th:href="@{/transactions/create}" class="btn btn-success">Thêm mới</a>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                <tr>
+                    <th>Mã GD</th>
+                    <th>Tên khách hàng</th>
+                    <th>Loại dịch vụ</th>
+                    <th>Ngày GD</th>
+                    <th>Đơn giá (VND/m2)</th>
+                    <th>Diện tích (m2)</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${transactionPage.content}">
+                    <td th:text="${t.id}"></td>
+                    <td th:text="${t.customer.name}"></td>
+                    <td th:text="${t.serviceType}"></td>
+                    <td th:text="${#temporals.format(t.transactionDate, 'dd/MM/yyyy')}"></td>
+                    <td th:text="${#numbers.formatDecimal(t.price, 0, 'COMMA', 0, 'POINT')}"></td>
+                    <td th:text="${t.area}"></td>
+                    <td class="d-flex gap-1 flex-wrap">
+                        <a th:href="@{/transactions/{id}(id=${t.id})}" class="btn btn-sm btn-outline-info">Chi tiết</a>
+                        <a th:href="@{/transactions/{id}/edit(id=${t.id})}" class="btn btn-sm btn-outline-warning">Sửa</a>
+                        <!-- Nút mở Bootstrap Modal — truyền id & tên KH qua data attribute -->
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal" data-bs-target="#deleteConfirmModal"
+                                th:attr="data-id=${t.id}, data-customer=${t.customer.name}">
+                            Xóa
+                        </button>
+                    </td>
+                </tr>
+                <tr th:if="${transactionPage.empty}">
+                    <td colspan="7" class="text-center py-3">Không tìm thấy giao dịch nào.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Khối Phân Trang Bootstrap -->
+        <div class="card-footer d-flex justify-content-center" th:if="${transactionPage.totalPages > 1}">
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item" th:classappend="${transactionPage.first ? 'disabled' : ''}">
+                        <a class="page-link"
+                           th:href="@{/transactions(page=${transactionPage.number - 1}, customerName=${customerName}, serviceType=${serviceType})}">Trước</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, transactionPage.totalPages - 1)}"
+                        th:classappend="${transactionPage.number == i ? 'active' : ''}">
+                        <a class="page-link"
+                           th:href="@{/transactions(page=${i}, customerName=${customerName}, serviceType=${serviceType})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${transactionPage.last ? 'disabled' : ''}">
+                        <a class="page-link"
+                           th:href="@{/transactions(page=${transactionPage.number + 1}, customerName=${customerName}, serviceType=${serviceType})}">Sau</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ===== Bootstrap Modal Xác Nhận Xóa (dùng chung cho tất cả row) ===== -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1"
+         aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                        Xác nhận xóa giao dịch
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn xóa giao dịch mã
+                    <strong class="text-warning" id="modalTransactionId"></strong>
+                    của khách hàng <strong class="text-info" id="modalCustomerName"></strong>?
+                    <div class="mt-2 text-danger small">
+                        <i class="bi bi-info-circle me-1"></i>Hành động này không thể hoàn tác.
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <!-- Form xóa — action được cập nhật bằng JS khi modal mở -->
+                    <form id="deleteForm" method="post">
+                        <button type="submit" class="btn btn-danger">Đồng ý xóa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script điền thông tin vào modal trước khi hiển thị -->
+    <script th:inline="javascript">
+        document.getElementById('deleteConfirmModal').addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            const transactionId = btn.getAttribute('data-id');
+            const customerName = btn.getAttribute('data-customer');
+
+            // Điền thông tin vào modal body
+            document.getElementById('modalTransactionId').textContent = transactionId;
+            document.getElementById('modalCustomerName').textContent = customerName;
+
+            // Cập nhật action của form xóa
+            const contextPath = /*[[@{/}]]*/ '/';
+            document.getElementById('deleteForm').action =
+                contextPath + 'transactions/' + transactionId + '/delete';
+        });
+    </script>
+</div>
+</body>
+</html>
